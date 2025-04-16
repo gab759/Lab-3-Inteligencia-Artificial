@@ -9,7 +9,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float _stoppingDistance = 0.5f;
 
     private NavMeshAgent _navMeshAgent;
-    private GameObject _currentTarget;
+    [SerializeField] private GameObject _currentTarget;
 
     private void Awake()
     {
