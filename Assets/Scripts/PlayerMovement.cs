@@ -1,20 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private float _speed = 3f;
-    [SerializeField] private float _rotationSpeed = 10f;
+    [SerializeField] private float _rotationSpeed = 5f;
     [SerializeField] private float _stoppingDistance = 0.5f;
 
+    private NavMeshAgent _navMeshAgent;
     private GameObject _currentTarget;
-    private bool _isMoving = false;
-    private float _fixedYPosition; // Mantendrá la posición Y inicial
 
-    private void Start()
+    private void Awake()
     {
-        _fixedYPosition = transform.position.y; // Guarda la posición Y inicial
+        _navMeshAgent = GetComponent<NavMeshAgent>();
+        ConfigureNavMeshAgent();
+    }
+
+    private void ConfigureNavMeshAgent()
+    {
+        _navMeshAgent.angularSpeed = _rotationSpeed * 100; // Ajuste para rotación suave
+        _navMeshAgent.stoppingDistance = _stoppingDistance;
+        _navMeshAgent.updateRotation = true; // NavMesh controla la rotación
+        _navMeshAgent.updateUpAxis = false; // Ignora cambios en el eje Y
     }
 
     public void MoveToTarget(GameObject target)
@@ -26,46 +34,26 @@ public class PlayerMovement : MonoBehaviour
         }
 
         _currentTarget = target;
-        _isMoving = true;
+
+        // Configura el destino manteniendo la posición Y actual
+        Vector3 targetPosition = new Vector3(
+            target.transform.position.x,
+            transform.position.y,
+            target.transform.position.z
+        );
+
+        _navMeshAgent.SetDestination(targetPosition);
     }
 
     private void Update()
     {
-        if (!_isMoving || _currentTarget == null) return;
-
-        // Calcula dirección ignorando el eje Y
-        Vector3 targetPosition = new Vector3(
-            _currentTarget.transform.position.x,
-            _fixedYPosition, // Usa la posición Y fija
-            _currentTarget.transform.position.z
-        );
-
-        Vector3 direction = (targetPosition - transform.position).normalized;
-
-        // Movimiento en XZ
-        transform.position += new Vector3(direction.x, 0, direction.z) * _speed * Time.deltaTime;
-
-        // Rotación solo si hay movimiento
-        if (direction != Vector3.zero)
+        // Verifica si llegó al destino
+        if (_currentTarget != null &&
+            !_navMeshAgent.pathPending &&
+            _navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                _rotationSpeed * Time.deltaTime
-            );
-        }
-
-        // Verifica distancia de llegada (ignorando Y)
-        float horizontalDistance = Vector2.Distance(
-            new Vector2(transform.position.x, transform.position.z),
-            new Vector2(targetPosition.x, targetPosition.z)
-        );
-
-        if (horizontalDistance <= _stoppingDistance)
-        {
-            _isMoving = false;
             Debug.Log($"Llegó a {_currentTarget.tag}");
+            _currentTarget = null;
         }
     }
 }
