@@ -44,7 +44,31 @@ public class PlayerMovement : MonoBehaviour
 
         _navMeshAgent.SetDestination(targetPosition);
     }
+    public void MoveToTargetPosition(Vector3 position)
+    {
+        Vector3 targetPosition = new Vector3(
+            position.x,
+            transform.position.y,
+            position.z
+        );
 
+        _navMeshAgent.SetDestination(targetPosition);
+        _currentTarget = null; // Resetea el target ya que es una posición, no un GameObject
+    }
+    public void MoveToPosition(Vector3 position)
+    {
+        _navMeshAgent.SetDestination(new Vector3(
+            position.x,
+            transform.position.y,
+            position.z
+        ));
+    }
+
+    public void FollowToy(Transform toy)
+    {
+        if (toy == null) return;
+        MoveToPosition(toy.position);
+    }
     private void Update()
     {
         // Verifica si llegó al destino

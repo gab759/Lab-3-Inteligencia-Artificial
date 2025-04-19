@@ -666,7 +666,7 @@ Transform:
   m_GameObject: {fileID: 2045834917}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.59, y: 0.08, z: -18.84}
+  m_LocalPosition: {x: -8.59, y: 0.63, z: -18.84}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -712,7 +712,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agente: {fileID: 2045834918}
-  rangoDeBusqueda: 5
+  rangoDeBusqueda: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

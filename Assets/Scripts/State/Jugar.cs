@@ -1,40 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Jugar : Humano
 {
     private PlayerMovement _playerMovement;
-    [SerializeField] private GameObject _playZone;
-    private GameObject _comedor, _dormitorio, _banno;
+    [SerializeField] private float _wanderRadius = 10f;
+    [SerializeField] private float _wanderDelay = 3f;
+    
+    private float _timer;
+    private Vector3 _wanderTarget;
+
     private void Awake()
     {
         typestate = TypeState.Jugar;
         LocadComponent();
     }
+
     public override void LocadComponent()
     {
         base.LocadComponent();
         _playerMovement = GetComponent<PlayerMovement>();
-
-        if (_playZone == null) _playZone = GameObject.FindWithTag("Play");
-        _comedor = GameObject.FindWithTag("Repas");
-        _dormitorio = GameObject.FindWithTag("Sleep");
-        _banno = GameObject.FindWithTag("WC");
-
-        if (_playZone == null) Debug.LogError("No se encontró PlayZone");
     }
 
     public override void Enter()
     {
-        if (_playZone != null)
-        {
-            _playerMovement.MoveToTarget(_playZone);
-        }
-        else
-        {
-            Debug.LogWarning("PlayZone no asignado");
-        }
+        _timer = _wanderDelay; // Inicia el timer inmediatamente
+        SetRandomDestination();
     }
 
     public override void Execute()
@@ -43,7 +36,15 @@ public class Jugar : Humano
         _DataAgent.DiscountSleep();
         _DataAgent.DiscountWC();
 
-        // Prioridad de transiciones (Energy > Sleep > WC)
+        // Temporizador para cambiar de destino
+        _timer -= Time.deltaTime;
+        if (_timer <= 0f)
+        {
+            SetRandomDestination();
+            _timer = _wanderDelay;
+        }
+
+        // Transiciones a otros estados (prioridad Energy > Sleep > WC)
         if (_DataAgent.Energy.value < 0.25f)
         {
             _StateMachine.ChangeState(TypeState.Comer);
@@ -58,5 +59,21 @@ public class Jugar : Humano
         }
 
         base.Execute();
+    }
+
+    private void SetRandomDestination()
+    {
+        Vector3 randomDirection = Random.insideUnitSphere * _wanderRadius;
+        randomDirection += transform.position;
+        
+        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, _wanderRadius, NavMesh.AllAreas))
+        {
+            _wanderTarget = hit.position;
+            _playerMovement.MoveToTargetPosition(_wanderTarget);
+        }
+        else
+        {
+            Debug.LogWarning("No se encontró una posición válida en el NavMesh");
+        }
     }
 }

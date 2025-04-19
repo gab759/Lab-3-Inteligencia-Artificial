@@ -4,44 +4,51 @@ using UnityEngine;
 
 public class StateMachine : MonoBehaviour
 {
-    public State[] states ;
+    public State[] states;
     public State currentState = null;
-    public TypeState Startstate;
-    // Start is called before the first frame update
+    public TypeState Startstate = TypeState.Jugar; // Siempre inicia en Jugar
+
     void Start()
     {
         states = GetComponents<State>();
-         
         ChangeState(Startstate);
     }
 
-    public void ChangeState(TypeState type)
+    public void ChangeState(TypeState newState)
     {
-        foreach (var state in states) {
+        // Bloquea cambios si ya está en FollowToy (excepto para salir)
+        if (currentState != null && currentState.typestate == TypeState.FollowToy && newState != TypeState.Jugar)
+            return;
 
-            if (((State)state).typestate == type)
+        foreach (var state in states)
+        {
+            if (state.typestate == newState)
             {
                 if (currentState != null)
+                {
                     currentState.Exit();
+                    currentState.enabled = false;
+                }
 
-                ((State)state).Enter();
-                currentState = ((State)state);
-                state.enabled = true;
-
-            }
-            else
-            {
-                state.enabled = false;
+                currentState = state;
+                currentState.enabled = true;
+                currentState.Enter();
+                Debug.Log($"Cambiado a {newState}");
+                return;
             }
         }
+        Debug.LogError($"Estado {newState} no encontrado");
     }
 
+    // Nuevo método para forzar FollowToy (prioridad absoluta)
+    public void ForceFollowToy()
+    {
+        ChangeState(TypeState.FollowToy);
+    }
 
     private void Update()
     {
-        if(currentState!=null)
-        {
+        if (currentState != null)
             currentState.Execute();
-        }
     }
 }

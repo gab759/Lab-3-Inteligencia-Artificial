@@ -44,8 +44,11 @@ public class SpawnToy : MonoBehaviour
 
         if (Physics.Raycast(puntoInicial, Vector3.down, out RaycastHit hit, Mathf.Infinity, naveLayer))
         {
-            Instantiate(objetoRecolectable, hit.point, Quaternion.identity);
-            Debug.Log("Objeto generado en: " + hit.point);
+            // Añade +0.1 en el eje Y al punto de impacto
+            Vector3 spawnPosition = hit.point + Vector3.up * 0.1f;
+
+            Instantiate(objetoRecolectable, spawnPosition, Quaternion.identity);
+            Debug.Log("Objeto generado en: " + spawnPosition);
         }
         else
         {

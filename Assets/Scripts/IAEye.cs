@@ -246,34 +246,43 @@ public class IAEye : MonoBehaviour
     void Scan()
     {
         ViewToy = null;
+        bool toyDetected = false; // Bandera para saber si encontramos un juguete válido
 
         Collider[] toys = Physics.OverlapSphere(transform.position, dataView.distance, dataView.Scanlayers);
         float min_dist = float.MaxValue;
-        for (int i = 0; (i < toys.Length); i++)
+
+        for (int i = 0; i < toys.Length; i++)
         {
-
             GameObject toy = toys[i].gameObject;
-
-            UnityEngine.Debug.Log("name: " + toy.name);
-
             Health health = toy.GetComponent<Health>();
-            if (health != null && health.AimOffSet != null && dataView.IsInSight(health.AimOffSet))
+
+            if (health != null && health.Entity == Entity.Toy && health.AimOffSet != null && dataView.IsInSight(health.AimOffSet))
             {
-                float dist = (transform.position - health.transform.position).magnitude;
-                if (min_dist > dist)
+                float dist = Vector3.Distance(transform.position, health.transform.position);
+                if (dist < min_dist)
                 {
                     ViewToy = health;
-
                     min_dist = dist;
-
+                    toyDetected = true;
                 }
             }
-
         }
 
+        dataView.InSight = toyDetected;
 
-        if (ViewToy == null)
+        // --- NUEVO: Activar FollowToy si detectamos un juguete ---
+        if (toyDetected)
+        {
+            StateMachine stateMachine = GetComponent<StateMachine>();
+            if (stateMachine != null && stateMachine.currentState.typestate != TypeState.FollowToy)
+            {
+                stateMachine.ForceFollowToy();
+            }
+        }
+        else
+        {
             dataView.InSight = false;
+        }
     }
     private void OnValidate()
     {
