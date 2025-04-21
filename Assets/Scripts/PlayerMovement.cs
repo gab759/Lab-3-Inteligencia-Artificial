@@ -34,34 +34,16 @@ public class PlayerMovement : MonoBehaviour
         }
 
         _currentTarget = target;
-
-        // Configura el destino manteniendo la posición Y actual
-        Vector3 targetPosition = new Vector3(
-            target.transform.position.x,
-            transform.position.y,
-            target.transform.position.z
-        );
-
-        _navMeshAgent.SetDestination(targetPosition);
+        _navMeshAgent.SetDestination(target.transform.position);
     }
     public void MoveToTargetPosition(Vector3 position)
     {
-        Vector3 targetPosition = new Vector3(
-            position.x,
-            transform.position.y,
-            position.z
-        );
-
-        _navMeshAgent.SetDestination(targetPosition);
-        _currentTarget = null; // Resetea el target ya que es una posición, no un GameObject
+        _navMeshAgent.SetDestination(position);
+        _currentTarget = null;
     }
     public void MoveToPosition(Vector3 position)
     {
-        _navMeshAgent.SetDestination(new Vector3(
-            position.x,
-            transform.position.y,
-            position.z
-        ));
+        _navMeshAgent.SetDestination(position);
     }
 
     public void FollowToy(Transform toy)

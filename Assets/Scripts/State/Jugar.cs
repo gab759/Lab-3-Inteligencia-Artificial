@@ -8,7 +8,7 @@ public class Jugar : Humano
     private PlayerMovement _playerMovement;
     [SerializeField] private float _wanderRadius = 10f;
     [SerializeField] private float _wanderDelay = 3f;
-    
+    [SerializeField] private Transform _wanderCenter;
     private float _timer;
     private Vector3 _wanderTarget;
 
@@ -23,7 +23,10 @@ public class Jugar : Humano
         base.LocadComponent();
         _playerMovement = GetComponent<PlayerMovement>();
     }
-
+    public void SetWanderCenter(Transform center)
+    {
+        _wanderCenter = center;
+    }
     public override void Enter()
     {
         _timer = _wanderDelay; // Inicia el timer inmediatamente
@@ -63,10 +66,17 @@ public class Jugar : Humano
 
     private void SetRandomDestination()
     {
+        if (_wanderCenter == null)
+        {
+            Debug.LogWarning("Wander center no está asignado");
+            return;
+        }
+
         Vector3 randomDirection = Random.insideUnitSphere * _wanderRadius;
-        randomDirection += transform.position;
-        
-        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, _wanderRadius, NavMesh.AllAreas))
+        randomDirection.y = 0; // mantenemos movimiento horizontal
+        Vector3 finalPosition = _wanderCenter.position + randomDirection;
+
+        if (NavMesh.SamplePosition(finalPosition, out NavMeshHit hit, _wanderRadius, NavMesh.AllAreas))
         {
             _wanderTarget = hit.position;
             _playerMovement.MoveToTargetPosition(_wanderTarget);
